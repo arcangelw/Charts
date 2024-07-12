@@ -337,7 +337,7 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
                 _barShadowRectBuffer.size.height = viewPortHandler.contentHeight
                 
                 context.setFillColor(dataSet.barShadowColor.cgColor)
-                context.fill(_barShadowRectBuffer)
+                drawFullShadow(context: context, dataSet: dataSet, at: _barShadowRectBuffer)
             }
         }
 
@@ -346,12 +346,12 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
         // draw the bar shadow before the values
         if dataProvider.isDrawBarShadowEnabled
         {
-            for barRect in buffer where viewPortHandler.isInBoundsLeft(barRect.origin.x + barRect.size.width)
+            for (index, barRect) in buffer.enumerated() where viewPortHandler.isInBoundsLeft(barRect.origin.x + barRect.size.width)
             {
                 guard viewPortHandler.isInBoundsRight(barRect.origin.x) else { break }
 
                 context.setFillColor(dataSet.barShadowColor.cgColor)
-                context.fill(barRect)
+                drawBarShadow(context: context, dataSet: dataSet, at: barRect, stackIndex: index)
             }
         }
         
@@ -379,13 +379,13 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
                 context.setFillColor(dataSet.color(atIndex: j).cgColor)
             }
             
-            context.fill(barRect)
+            drawBar(context: context, dataSet: dataSet, barRect: barRect, stackIndex: j)
             
             if drawBorder
             {
                 context.setStrokeColor(borderColor.cgColor)
                 context.setLineWidth(borderWidth)
-                context.stroke(barRect)
+                drawBarBorder(context: context, dataSet: dataSet, barRect: barRect, stackIndex: j)
             }
 
             // Create and append the corresponding accessibility element to accessibilityOrderedElements
@@ -743,10 +743,35 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
                 prepareBarHighlight(x: e.x, y1: y1, y2: y2, barWidthHalf: barData.barWidth / 2.0, trans: trans, rect: &barRect)
                 
                 setHighlightDrawPos(highlight: high, barRect: barRect)
-                
-                context.fill(barRect)
+
+                drawHighlightedBar(context: context, dataSet: set, barRect: barRect, stackIndex: high.stackIndex)
             }
         }
+    }
+
+    /// Draws the shadow for the full bar
+    open func drawFullShadow(context: CGContext, dataSet: BarChartDataSetProtocol, at barRect: CGRect) {
+        context.fill(barRect)
+    }
+
+    /// Draws the shadow for the value bar
+    open func drawBarShadow(context: CGContext, dataSet: BarChartDataSetProtocol, at barRect: CGRect, stackIndex: Int) {
+        context.fill(barRect)
+    }
+
+    /// Draws the value bar
+    open func drawBar(context: CGContext, dataSet: BarChartDataSetProtocol, barRect: CGRect, stackIndex: Int) {
+        context.fill(barRect)
+    }
+
+    /// Draws the border for the value bar
+    open func drawBarBorder(context: CGContext, dataSet: BarChartDataSetProtocol, barRect: CGRect, stackIndex: Int) {
+        context.stroke(barRect)
+    }
+
+    /// Draws the highlighted value bar
+    open func drawHighlightedBar(context: CGContext, dataSet: BarChartDataSetProtocol, barRect: CGRect, stackIndex: Int) {
+        context.fill(barRect)
     }
 
     /// Sets the drawing position of the highlight object based on the given bar-rect.
